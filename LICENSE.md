@@ -1,21 +1,55 @@
 
 # License information
 
-This code is distributed as is by the authors. It is whole and this license applies to all its component and files except the external dependencies which have their own license.
+Code and network weights are released under different licenses, both are dual licenses depending on applications, research or commercial.
 
-This code is released under a dual license.
+---
 
-#### For research and non commercial purposes
-Creative Commons BY-NC-SA license, it implies:
+## COMMERCIAL PURPOSES
+
+Please contact the ONERA [www.onera.fr/en/contact-us](www.onera.fr/en/contact-us) for additional information or directly the authors Alexandre Boulch and Bertrand Le Saux.
+
+---
+
+## RESEARCH AND NON COMMERCIAL PURPOSES
+
+#### Code license
+
+For research and non commercial purposes, all the code and documentation of github.com/aboulch/snapnet is released under the MIT license:
+
+Copyright (c) 2017 ONERA, Alexandre Boulch, Bertrand Le Saux, Nicolas Audebert
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+```
+COPYRIGHT (c) 2017 ONERA, Alexandre Boulch, Bertrand Le Saux, Nicolas Audebert
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+PLEASE ACKNOWLEDGE THE ORIGINAL AUTHORS AND PUBLICATION ACCORDING TO THE
+REPOSITORY github.com/aboulch/snapnet OR IF NOT AVAILABLE:
+"Unstructured point cloud semantic labeling using deep segmentation
+networks", A.Boulch and B. Le Saux and N. Audebert,
+Eurographics Workshop on 3D Object Retrieval 2017
+```
+
+#### Network weights license
+
+For research and non commercial purposes, all the network weights and documentation available at github.com/aboulch/snapnet are released under the Creative Commons BY-NC-SA license, which implies:
 - Licensees may copy, distribute, display and perform the work and make derivative works and remixes based on it only if they give the author or licensor the credits (attribution) in the following manner: acknowledgement of the authors and paper citation as described on the repository page site, or if not available by citing:
 
-    "Unstructured point cloud semantic labeling using deep segmentation networks",
-    A.Boulch and B. Le Saux and N. Audebert,
-    Eurographics Workshop on 3D Object Retrieval 2017
+```
+"Unstructured point cloud semantic labeling using deep segmentation networks",
+A.Boulch and B. Le Saux and N. Audebert,
+Eurographics Workshop on 3D Object Retrieval 2017
+```
 
 - Licensees may distribute derivative works only under a license identical ("not more restrictive") to the license that governs the original work. (See also copyleft.) Without share-alike, derivative works might be sublicensed with compatible but more restrictive license clauses, e.g. CC BY to CC BY-NC.)
 - Licensees may copy, distribute, display, and perform the work and make derivative works and remixes based on it only for non-commercial purposes.
-The detailed license is available at creativecommons.org
-
-#### For commercial purposes
-Please contact the authors Alexandre Boulch and Bertrand Le Saux, or directly get in touch with ONERA at www.onera.fr/en/contact-us
+The detailed license is available at creativecommons.org.
