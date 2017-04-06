@@ -1,0 +1,36 @@
+{
+    "train_input_dir":"path_to_directory_TRAIN",
+    "test_input_dir":"path_to_directory_TEST",
+    "train_results_root_dir":"where_to_put_training_products",
+    "test_results_root_dir":"where_to_put_test_products",
+    "images_dir":"images",
+
+    "imsize":224,
+    "voxel_size":0.1,
+
+    "train_cam_number":10,
+    "train_create_mesh" : true,
+    "train_create_views" : true,
+    "train_create_images" : true,
+
+    "test_cam_number":10,
+    "test_create_mesh" : true,
+    "test_create_views" : true,
+    "test_create_images" : true,
+
+    "vgg_weight_init":"path_to_vgg_weights",
+    "batch_size" : 24,
+    "learning_rate" : 1e-4,
+    "epoch_nbr" : 100,
+    "label_nbr" : 10,
+    "input_ch" : 3,
+
+    "train_rgb" : true,
+    "train_composite" : true,
+    "train_fusion" : true,
+
+    "saver_directory_rgb" : "path_to_rgb_model_directory",
+    "saver_directory_composite" : "path_to_composite_model_directory",
+    "saver_directory_fusion" : "path_to_fusion_model_directory",
+    "output_directory":"path_to_output_product_directory"
+}

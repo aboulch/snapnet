@@ -1,0 +1,7 @@
+*build*
+__pycache__/
+Eigen/
+nanoflann.hpp
+*.so
+*.pyc
+*_local*
