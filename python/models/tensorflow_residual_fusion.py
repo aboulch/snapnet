@@ -15,7 +15,7 @@ convolution2d = lambda *args, **kwargs: tf.contrib.layers.convolution2d(*args,
 def model(net1, net2, label_nbr):
 
 
-    net = [tf.concat(3,[tf.stop_gradient(net1[-3]),tf.stop_gradient(net2[-3])])]
+    net = [tf.concat([tf.stop_gradient(net1[-3]),tf.stop_gradient(net2[-3])],3)]
     net.append(convolution2d(net[-1], 64))
     net.append(convolution2d(net[-1], 64))
     net.append(convolution2d(net[-1], label_nbr))
