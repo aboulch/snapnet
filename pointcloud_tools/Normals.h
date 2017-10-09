@@ -52,7 +52,7 @@
 
 class Eigen_Normal_Estimator{
 public:
-	
+
 	////////////////////////////
 	////////////////////////////
 	////                    ////
@@ -60,13 +60,13 @@ public:
 	////                    ////
 	////////////////////////////
 	////////////////////////////
-	
+
 	enum Normal_selector{
 		MEAN, /*!<MEAN, used for normal computation by mean*/
 		BEST, /*!<BEST, used for normal computation by best confidence*/
 		CLUSTER/*!<CLUSTER, used for normal computation by clustering*/
 	};
-	
+
 	typedef nanoflann::KDTreeEigenMatrixAdaptor< Eigen::MatrixX3d > kd_tree; //a row is a point
 
 	///////////////////////
@@ -76,7 +76,7 @@ public:
 	////               ////
 	///////////////////////
 	///////////////////////
-	
+
 	/*!
 	 * \brief Constructor
 	 * @param points
@@ -86,7 +86,7 @@ public:
 		pts(points),nls(normals){
 		set_default_parameters();
 	}
-	
+
 	//////////////////////
 	//////////////////////
 	////              ////
@@ -101,20 +101,20 @@ public:
 	int n_planes;/*!< Plane number to draw*/
 	int n_phi;/*!< Accumulator discretization parameter*/
 	int n_rot;/*!< Rotation number*/
-	
-	
+
+
 	Normal_selector selection_type;/*!< Type of selection of normals (best, cluster, default: mean)*/
 	double neighborhood_size; /*size of the neighborhood*/
 	bool knn; /*!< method to use to search for neighborhoods: true = k-nearest neighbors, false = radius*/
 	bool use_density; /*!< use a density estimation of triplets generation*/
-	
+
 	int lower_neighbor_bound_neighbors; /*!<lower_neighbor_bound_neighbors minimal number of neighbors in radius search*/
 	double tol_angle_rad;/*!< Angle parameter for cluster normal selection*/
 
 	unsigned int k_density; /*!< size of the neighborhood for density estimation*/
-	
-	std::vector<double> densities; /*!< vector of the densities*>
-	
+
+	std::vector<double> densities; /*!< vector of the densities*/
+
 	///////////////////
 	///////////////////
 	////           ////
@@ -122,10 +122,11 @@ public:
 	////           ////
 	///////////////////
 	///////////////////
-	
-	/*!
+
+	/*
 	 * return a string to print the parameters
 	 */
+
 	std::string parameters() const{
 		std::stringstream sstr("");
 		sstr << "number of planes: " << n_planes << std::endl;
@@ -150,7 +151,7 @@ public:
 			sstr << "use_density: FALSE" << std::endl;
 		return sstr.str();
 	}
-	
+
 	/*!
 	 * Function to call in order to estimate the normals
 	 */
@@ -159,22 +160,22 @@ public:
 		/*********************************
 		 * INIT
 		 ********************************/
-		
+
 		//initialize the random number generator
 		srand((unsigned int)time(NULL));
 
 		//creating vector of random int
 		std::vector<int> vecInt(1000000);
-		for(int i=0; i<vecInt.size(); i++){
+		for(size_t i=0; i<vecInt.size(); i++){
 			vecInt[i] = rand();
 		}
-		
+
 		//confidence intervals (2 intervals length)
 		std::vector<float> conf_interv(n_planes);
 		for(int i=0; i<n_planes; i++){
 			conf_interv[i] = 2.f/std::sqrt(i+1.f);
 		}
-		
+
 		//random permutation of the points (avoid thread difficult block)
 		std::vector<int> permutation(pts.rows());
 		for(int i=0; i<pts.rows(); i++){
@@ -186,24 +187,24 @@ public:
 			permutation[i] = permutation[j];
 			permutation[j] = temp;
 		}
-		
+
 		//creation of the rotation matrices and their inverses
 		std::vector<Eigen::Matrix3d> rotMat;
 		std::vector<Eigen::Matrix3d> rotMatInv;
 		generate_rotation_matrix(rotMat,rotMatInv, n_rot*200);
-		
+
 		//dimensions of the accumulator
 		int d1 = 2*n_phi;
 		int d2 = n_phi+1;
 
-		
+
 		/*******************************
 		 * ESTIMATION
 		 ******************************/
-	
+
 		//resizing the normal point cloud
 		nls.resize(pts.rows(),3);
-		
+
 		//kd tree creation
 		//build de kd_tree
 		kd_tree tree(3, pts, 10 /* max leaf */ );
@@ -212,7 +213,7 @@ public:
 		//create the density estimation for each point
 		densities.resize(pts.rows());
 #if defined(USE_OPENMP_FOR_NORMEST)
-#pragma omp parallel for schedule(guided) 
+#pragma omp parallel for schedule(guided)
 #endif
 		for(int per=0; per<(int)pts.rows(); per++){
 			//index of the point
@@ -224,14 +225,14 @@ public:
 			//knn for k_density+1 because the point is itself include in the search tree
 			tree.index->knnSearch(&pt_query[0], k_density+1, &pointIdxSearch[0], &pointSquaredDistance[0]);
 			double d =0;
-			for(int i=0; i<pointSquaredDistance.size(); i++){
+			for(size_t i=0; i<pointSquaredDistance.size(); i++){
 				d+=std::sqrt(pointSquaredDistance[i]);
 			}
 			d /= pointSquaredDistance.size()-1;
 			densities[n] = d;
 		}
-		
-		
+
+
 		int rotations = std::max(n_rot,1);
 
 		//create the list of triplets in KNN case
@@ -251,30 +252,30 @@ public:
 			//getting the list of neighbors
 			std::vector<long int> pointIdxSearch;
 			std::vector<double> pointSquaredDistance;
-			
+
 			const Eigen::Vector3d& pt_query = pts.row(n);
 			if(knn){
 				pointIdxSearch.resize(int(neighborhood_size));
 				pointSquaredDistance.resize(int(neighborhood_size));
 				tree.index->knnSearch(&pt_query[0], int(neighborhood_size), &pointIdxSearch[0], &pointSquaredDistance[0]);
-				
+
 				if(use_density)
 					list_of_triplets(trip,rotations*n_planes,pointIdxSearch,vecInt);
 			}else{
 				std::vector<std::pair<long int, double> > matches;
 				tree.index->radiusSearch(&pt_query[0], double(neighborhood_size), matches, nanoflann::SearchParams());
 
-				if(matches.size() < lower_neighbor_bound_neighbors){
+				if((int)matches.size() < lower_neighbor_bound_neighbors){
 					tree.index->knnSearch(&pt_query[0], lower_neighbor_bound_neighbors, &pointIdxSearch[0], &pointSquaredDistance[0]);
 				}else{
 					pointIdxSearch.resize(matches.size());
 					pointSquaredDistance.resize(matches.size());
-					for(int m=0; m<matches.size(); m++){
+					for(size_t m=0; m<matches.size(); m++){
 						pointIdxSearch[m] = matches[m].first;
 						pointSquaredDistance[m] = matches[m].second;
 					}
 				}
-				
+
 				if(use_density)
 					list_of_triplets(trip,rotations*n_planes,pointIdxSearch,vecInt);
 				else
@@ -284,7 +285,7 @@ public:
 			//get the points
 			unsigned int points_size = (unsigned int) pointIdxSearch.size();
 			Eigen::MatrixX3d points(points_size,3);
-			for(unsigned int pt=0; pt<pointIdxSearch.size(); pt++){
+			for(size_t pt=0; pt<pointIdxSearch.size(); pt++){
 				points.row(pt) = pts.row(pointIdxSearch[pt]);
 			}
 
@@ -294,12 +295,12 @@ public:
 			for(int i=0; i<rotations; i++){
 				Eigen::MatrixX3i triplets = trip.block(i*n_planes,0, n_planes, 3);
 
-				for(unsigned int pt= 0; pt < points_size; pt++){
+				for(size_t pt= 0; pt < points_size; pt++){
 					points.row(pt) = rotMat[(n+i)%rotMat.size()]*points.row(pt).transpose();
 				}
 				normals_conf[i] = normal_at_point(d1, d2,points,points_size,  n,  triplets,  conf_interv);
 
-				for(unsigned int pt= 0; pt < points_size; pt++){
+				for(size_t pt= 0; pt < points_size; pt++){
 					points.row(pt)=pts.row(pointIdxSearch[pt]);
 				}
 				normals_vec[i] = rotMatInv[(n+i)%rotMat.size()]*nls.row(n).transpose();
@@ -328,7 +329,7 @@ private:
 		use_density = false;
 		k_density = 1;
 	}
-	
+
 	/*!
 	 * fills a vector of random rotation matrix and their inverse
 	 * @param rotMat : table matrices to fill with rotations
@@ -383,7 +384,7 @@ private:
 			const int &number_of_points,
 			const unsigned int &triplet_number,
 			std::vector<int> &vecRandInt){
-		
+
 		unsigned int S = vecRandInt.size();
 		triplets.resize(triplet_number,3);
 		unsigned int pos=vecRandInt[0]%S;
@@ -401,13 +402,13 @@ private:
 	 * dichotomic search in sorted vector, find the nearest neighbor
 	 * @param elems : sorted vector containing the elements for comparison
 	 * @param d : element to search for in elems
-	 * @return the index of the nearest neighbor of d in elems 
-	 */ 
+	 * @return the index of the nearest neighbor of d in elems
+	 */
 	//return the index of the nearest element in the vector
 	unsigned int dichotomic_search_nearest(const std::vector<double> elems, double d){
 		unsigned int i1 = 0;
 		unsigned int i2 = elems.size()-1;
-		unsigned int i3;
+		unsigned int i3 = 0;
 		while(i2 > i1){
 			i3 = (i1+i2)/2;
 			if(elems[i3] == d){break;}
@@ -416,7 +417,7 @@ private:
 		}
 		return i3;
 	}
-	
+
 	/*!
 	 * generates a list of triplets
 	 * @param triplets : table of 3-vector to fill with the indexes of the points
@@ -425,19 +426,19 @@ private:
 	 * @param vecRandInt : table of random int
 	 */
 	inline void list_of_triplets(Eigen::MatrixX3i &triplets,
-		const unsigned int &triplet_number, 
+		const unsigned int &triplet_number,
 		std::vector<long int> pointIdxSearch,
 		std::vector<int> &vecRandInt)
 	{
 		std::vector<double> dists;
 		double sum=0;
-		for(int i=0; i<pointIdxSearch.size(); i++){
+		for(size_t i=0; i<pointIdxSearch.size(); i++){
 			sum+=densities[pointIdxSearch[i]];
 			dists.push_back(sum);
 		}
-		
+
 		unsigned int S = vecRandInt.size();
-		unsigned int number_of_points = pointIdxSearch.size();
+		//unsigned int number_of_points = pointIdxSearch.size();
 		triplets.resize(triplet_number,3);
 		unsigned int pos=vecRandInt[0]%S;;
 		for(unsigned int i=0; i<triplet_number; i++){

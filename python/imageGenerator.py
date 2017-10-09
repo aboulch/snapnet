@@ -83,7 +83,7 @@ class ImageGenerator:
             im = np.zeros(indices.shape+(3,))
             im[mask] = self.composite[vertex_ids]
             cam = self.cameras[i]
-            center = np.array([cam["x"],cam["y"],cam["z"]])
+            center = np.array([cam["eyeX"],cam["eyeY"],cam["eyeZ"]])
             distances = np.sqrt(((self.vertices[vertex_ids]-center[None,:])**2).sum(axis=1))
             min_d = 30.
             max_d = 100.

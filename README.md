@@ -47,12 +47,14 @@ In our implementation we used the caffe weights avalaible [here](https://gist.gi
 
 ### Building
 
-Use CMake to generate the C++/Python library. It will be built in the python directory of the repository.
+To generate the C++/Python library.
 
-    mkdir build
-    cd build
-    cmake ..
-    make
+    cd pointcloud_tools
+    python setup.py install --home="."
+
+It will build the library.
+
+**Note**: in the ```setup.py```, we have filled the path with the standard path for PCL installation libraries and headers on Ubuntu 16.04.
 
 ### Configuration file
 
@@ -64,6 +66,8 @@ The Configuration file is a json file containing the parameters and paths:
         "train_results_root_dir":"where_to_put_training_products",
         "test_results_root_dir":"where_to_put_test_products",
         "images_dir":"images",
+
+        training:true,
 
         "imsize":224,
         "voxel_size":0.1,
@@ -100,17 +104,13 @@ It is used in the python scripts, to avoid code recopy.
 
 ### Launching the python scripts
 
-For the training dataset, the point cloud decimation, views and images generation are called with:
+For the training and testing dataset, the point cloud decimation, views and images generation are called with:
 
-    python3 sem3d_train_gen_images.py --config config.json
+    python3 sem3d_gen_images.py --config config.json
 
 To train the models (rgb, composite and fusion) from scratch, run:
 
     python3 sem3d_train_tf.py --config config.json
-
-For the test dataset, the point cloud decimation, views and images generation are called with:
-
-    python3 sem3d_test_gen_images.py --config config.json
 
 The semantic predictions on images and back-projection on the decimated clouds can be called using:
 
@@ -124,3 +124,6 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 The pre-trained are available [here](https://sites.google.com/view/boulch/publications/2017_3dor_pointclouds).
 
+## What's next ?
+
+We want to propose a Pytorch implementation.

@@ -19,25 +19,25 @@ PC::PC(): pc(new PointCloud){}
 
 PC::~PC(){}
 
-void PC::load_ply(const std::string& filename){
+void PC::load_ply(char* filename){
     pcl::io::loadPLYFile(filename, *pc);
 }
 
-void PC::load_off(const std::string& filename){
+void PC::load_off(char* filename){
     // TODO
     cout << "load_off not implemented TODO" << endl;
 }
 
-void PC::save_ply(const std::string& filename){
+void PC::save_ply(char* filename){
     pcl::io::savePLYFile(filename, *pc);
 }
 
-void PC::save_off(const std::string& filename){
+void PC::save_off(char* filename){
     // TODO
     cout << "save_off not implemented TODO" << endl;
 }
 
-void PC::save_ply_mesh(const std::string& filename){
+void PC::save_ply_mesh(char* filename){
     // update mesh colors
     pcl::PCLPointCloud2 pc2;
 	pcl::toPCLPointCloud2(*pc, pc2);
@@ -45,7 +45,7 @@ void PC::save_ply_mesh(const std::string& filename){
     pcl::io::savePolygonFile(filename,triangles);
 }
 
-void PC::save_off_mesh(const std::string& filename){
+void PC::save_off_mesh(char* filename){
     // TODO
     cout << "save_off_mesh not implemented TODO" << endl;
 }
@@ -56,7 +56,7 @@ void PC::estimate_normals_hough(int K){
 	Eigen::MatrixX3d normals;
 
 	points.resize(pc->size(),3);
-	for(int i=0; i<pc->size(); i++){
+	for(size_t i=0; i<pc->size(); i++){
 		points(i,0) = pc->points[i].x;
 		points(i,1) = pc->points[i].y;
 		points(i,2) = pc->points[i].z;
@@ -66,7 +66,7 @@ void PC::estimate_normals_hough(int K){
 	ne.neighborhood_size = K;
 	ne.estimate_normals();
 
-	for(int i=0; i<pc->size(); i++){
+	for(size_t i=0; i<pc->size(); i++){
 		pc->points[i].normal_x = normals(i,0);
 		pc->points[i].normal_y = normals(i,1);
 		pc->points[i].normal_z = normals(i,2);

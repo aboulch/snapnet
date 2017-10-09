@@ -25,8 +25,8 @@ public:
     PC_Labels(); // empty constructor
 
     // IO methods
-    void load_ply_composite(const std::string& filename);
-    void save_ply_composite(const std::string& filename);
+    void load_ply_composite(char* filename);
+    void save_ply_composite(char* filename);
 
     // noise estimation
     void estimate_noise_radius(float d);
@@ -35,7 +35,7 @@ public:
 
     // mesh creation
     void build_mesh(bool remove_multi_label_faces=false);
-    void save_mesh_composite(const std::string& filename);
+    void save_mesh_composite(char* filename);
 
     void get_composite(int* array, int m, int n);
     void get_labels(int* array, int m);

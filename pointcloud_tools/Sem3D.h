@@ -25,21 +25,21 @@ public:
     void set_voxel_size(float vox_size);
 
     // IO methods
-    bool load_Sem3D(const std::string& filename);
-    bool load_Sem3D_labels(const std::string& filename, const std::string& labels_filename);
-    void load_ply_labels(const std::string& filename);
-    void save_ply_labels(const std::string& filename);
+    void load_Sem3D(char* filename);
+    void load_Sem3D_labels(char* filename, char* labels_filename);
+    void load_ply_labels(char* filename);
+    void save_ply_labels(char* filename);
 
     // mesh creation
-    void save_mesh_labels(const std::string& filename);
+    void save_mesh_labels(char* filename);
 
     void get_labelsColors(int* array, int m, int n);
 
     void remove_unlabeled_points();
 
-    void mesh_to_label_file_no_labels(const std::string& mesh_filename,
-    		const std::string& sem3d_cloud_txt,
-    		const std::string& output_results);
+    void mesh_to_label_file_no_labels(char* mesh_filename,
+    		char* sem3d_cloud_txt,
+    		char* output_results);
 
     //#################################
     //#################################

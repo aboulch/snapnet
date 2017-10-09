@@ -39,13 +39,13 @@ public:
     //#################################
     //#################################
     // IO methods
-    void load_ply(const std::string& filename);
-    void load_off(const std::string& filename);
+    void load_ply(char* filename);
+    void load_off(char* filename);
 
-    void save_ply(const std::string& filename);
-    void save_off(const std::string& filename);
-    void save_ply_mesh(const std::string& filename);
-    void save_off_mesh(const std::string& filnename);
+    void save_ply(char* filename);
+    void save_off(char* filename);
+    void save_ply_mesh(char* filename);
+    void save_off_mesh(char* filnename);
 
     // normal estimation
     void estimate_normals_hough(int K);

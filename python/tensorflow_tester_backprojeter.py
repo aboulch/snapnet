@@ -1,13 +1,13 @@
 import numpy as np
 import os
-from plyfile import PlyData, PlyElement
+# from plyfile import PlyData, PlyElement
 import scipy.misc
 import pickle
 from tqdm import *
 import tensorflow as tf
 import shutil
 
-from .Semantic3D import Sem3D
+import pointcloud_tools.lib.python.PcTools as PcTls
 
 class BackProjeter:
 

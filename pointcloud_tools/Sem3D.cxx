@@ -65,7 +65,7 @@ int color2label(Eigen::Vector3i col){
 	cols.push_back(Eigen::Vector3i(122,0,255));
 	cols.push_back(Eigen::Vector3i(0,255,255));
 	cols.push_back(Eigen::Vector3i(255,110,206));
-    for(int i=0; i<cols.size(); i++){
+    for(size_t i=0; i<cols.size(); i++){
         if(col == cols[i]){
             return i;
         }
@@ -85,7 +85,7 @@ void Sem3D::set_voxel_size(float vox_size){
     voxel_size = vox_size;
 }
 
-bool Sem3D::load_Sem3D(const std::string& filename){
+void Sem3D::load_Sem3D(char* filename){
 
     //cout << "Rectange load Sem3D" << endl;
 
@@ -93,7 +93,7 @@ bool Sem3D::load_Sem3D(const std::string& filename){
 	pc->clear();
 
     // open the semantic 3D file
-	std::ifstream ifs(filename.c_str());
+	std::ifstream ifs(filename);
 	std::string line;
 	int pt_id =0;
 
@@ -164,17 +164,16 @@ bool Sem3D::load_Sem3D(const std::string& filename){
 	}
 
 	ifs.close();
-    return true;
 }
 
-bool Sem3D::load_Sem3D_labels(const std::string& filename, const std::string& labels_filename){
+void Sem3D::load_Sem3D_labels(char* filename, char* labels_filename){
     //cout << "Rectange load Sem3D with labels" << endl;
 
 	pc->clear();
 	labels.clear();
 
-	std::ifstream ifs(filename.c_str());
-	std::ifstream ifs_labels(labels_filename.c_str());
+	std::ifstream ifs(filename);
+	std::ifstream ifs_labels(labels_filename);
 	std::string line;
 	std::string line_labels;
 	int pt_id =0;
@@ -239,7 +238,7 @@ bool Sem3D::load_Sem3D_labels(const std::string& filename, const std::string& la
 			voxels[vox] = vc;
 		}
 	}
-
+ 
 	// build the new point cloud
 	pc->resize(voxels.size());
 	labels.resize(voxels.size());
@@ -257,25 +256,24 @@ bool Sem3D::load_Sem3D_labels(const std::string& filename, const std::string& la
 	}
 
 	ifs.close();
-    return true;
 }
 
 
 
-void Sem3D::load_ply_labels(const std::string& filename){
+void Sem3D::load_ply_labels(char*filename){
     PointCloudPtr pc_temp(new PointCloud);
     pcl::io::loadPLYFile(filename, *pc_temp);
     labels.resize(pc_temp->size());
-    for(int pt_id=0; pt_id<pc_temp->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc_temp->size(); pt_id++){
         labels[pt_id] = color2label(pc_temp->points[pt_id].getRGBVector3i());
     }
 }
 
-void Sem3D::save_ply_labels(const std::string& filename){
+void Sem3D::save_ply_labels(char* filename){
 
     vector<Eigen::Vector3i> labels_colors(pc->size());
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         labels_colors[pt_id][0] = int(pc->points[pt_id].r);
         labels_colors[pt_id][1] = int(pc->points[pt_id].g);
         labels_colors[pt_id][2] = int(pc->points[pt_id].b);
@@ -290,19 +288,19 @@ void Sem3D::save_ply_labels(const std::string& filename){
 
     // give colors back to point cloud
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         pc->points[pt_id].r = labels_colors[pt_id][0];
         pc->points[pt_id].g = labels_colors[pt_id][1];
         pc->points[pt_id].b = labels_colors[pt_id][2];
     }
 }
 
-void Sem3D::save_mesh_labels(const std::string& filename){
+void Sem3D::save_mesh_labels(char* filename){
 
     // create rgb labels colors
     vector<Eigen::Vector3i> labels_colors(pc->size());
     #pragma omp parallel for
-	for(int pt_id=0; pt_id<pc->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         labels_colors[pt_id][0] = int(pc->points[pt_id].r);
         labels_colors[pt_id][1] = int(pc->points[pt_id].g);
         labels_colors[pt_id][2] = int(pc->points[pt_id].b);
@@ -324,7 +322,7 @@ void Sem3D::save_mesh_labels(const std::string& filename){
 
     // give colors back to point cloud
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         pc->points[pt_id].r = labels_colors[pt_id][0];
         pc->points[pt_id].g = labels_colors[pt_id][1];
         pc->points[pt_id].b = labels_colors[pt_id][2];
@@ -333,7 +331,7 @@ void Sem3D::save_mesh_labels(const std::string& filename){
 
 void Sem3D::get_labelsColors(int* array, int m, int n)
 {
-    int i, j ;
+    int i; //, j ;
     int index = 0 ;
     for (i = 0; i < m; i++) {
         Eigen::Vector3i col = label2color(labels[i]);
@@ -353,7 +351,7 @@ void Sem3D::remove_unlabeled_points(){
     bool use_z_orient = (z_orients.size() == pc->size());
 
     int current_pos = 0;
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         if(labels[pt_id]==0){
             continue;
         }
@@ -374,22 +372,22 @@ void Sem3D::remove_unlabeled_points(){
 
 }
 
-void Sem3D::mesh_to_label_file_no_labels(const string& mesh_filename,
-		const string& sem3d_cloud_txt,
-		const string& output_results){
+void Sem3D::mesh_to_label_file_no_labels(char* mesh_filename,
+		char* sem3d_cloud_txt,
+		char* output_results){
 	// load the mesh
 	PointCloudPtr pc_temp(new PointCloud);
 	pcl::io::loadPLYFile(mesh_filename, *pc_temp);
 
 	// removing unlabeled points
 	int nbr_pts = 0;
-	for(int pt_id=0; pt_id<pc_temp->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc_temp->size(); pt_id++){
 		if(pc_temp->points[pt_id].getRGBVector3i() == Eigen::Vector3i(0,0,0)) continue;
 		nbr_pts++;
 	}
 	pc->resize(nbr_pts);
 	int pos=0;
-	for(int pt_id=0; pt_id<pc_temp->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc_temp->size(); pt_id++){
 		if(pc_temp->points[pt_id].getRGBVector3i() == Eigen::Vector3i(0,0,0)) continue;
 		pc->points[pos] = pc_temp->points[pt_id];
 		pos++;
@@ -402,7 +400,7 @@ void Sem3D::mesh_to_label_file_no_labels(const string& mesh_filename,
 
     // create the voxel map
     std::map<Eigen::Vector3i, int, Vector3icomp> voxels;
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         int x_id = std::floor(pc->points[pt_id].x/voxel_size) + 0.5; // + 0.5, centre du voxel (k1*res, k2*res)
 		int y_id = std::floor(pc->points[pt_id].y/voxel_size) + 0.5;
 		int z_id = std::floor(pc->points[pt_id].z/voxel_size) + 0.5;
@@ -412,8 +410,8 @@ void Sem3D::mesh_to_label_file_no_labels(const string& mesh_filename,
 
 
 	// iterate over the file
-	ofstream ofs(output_results.c_str());
-	ifstream ifs(sem3d_cloud_txt.c_str());
+	ofstream ofs(output_results);
+	ifstream ifs(sem3d_cloud_txt);
     string line;
     int pt_id = 0;
     while (std::getline(ifs, line))

@@ -6,35 +6,61 @@ import numpy as np
 import os
 import argparse
 import math
+import time
 
-import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-from pyqtgraph.Qt import QtCore, QtGui
+# import pyqtgraph as pg
+# import pyqtgraph.opengl as gl
+# from pyqtgraph.Qt import QtCore, QtGui
 
 from OpenGL.GL import *
+from OpenGL.GLU import *
+import OpenGL.GL.shaders as shaders
+from OpenGL.arrays import vbo
+from OpenGL.GL.ARB.texture_buffer_object import *
+from PyQt5 import QtWidgets, QtCore, QtGui, QtOpenGL
+
 import scipy.misc
 import pickle
 from tqdm import *
 import sys
 import numbers
 import copy
+from PIL import Image
 
-class ViewGenerator:
-
-    # opts
-    # imsize : image size
+class ViewGeneratorLauncher:
 
     def __init__(self):
-        self.app=pg.QtGui.QApplication([])#NEED TO call this once
+        self.app = QtWidgets.QApplication([])
+
+    def launch(self,view_generator):
+        self.view_generator = view_generator
+        self.view_generator.show()
+        self.app.exec_()
+
+    def exit(self):
+        self.app.exit()
+
+class ViewGeneratorBase(QtOpenGL.QGLWidget):
+
+    def __init__(self):
+        QtOpenGL.QGLWidget.__init__(self)
+        # create options
         self.opts = {}
         self.opts["imsize"] = 128
         self.opts["fov"] = 60
+        self.count_camera = 0
+
+        self.opts["near_plane"] = 1
+        self.opts["far_plane"] = 100
+
+
 
     def initialize_acquisition(self,
             dir_mesh,
             dir_images,
             filename,
         ):
+
 
         # save the paths
         self.dir_mesh = dir_mesh # root directory of acquisition
@@ -59,177 +85,188 @@ class ViewGenerator:
             self.face_colors[i,2] = (i+1) % 256
             self.face_colors[i,1] = ((i+1)//256)%256
             self.face_colors[i,0] = (((i+1)//256)//256)%256
-        self.face_colors /= 255. # pyqtgraph takes float colors
+        # self.face_colors /= 255. # pyqtgraph takes float colors
+        self.face_colors = self.face_colors.astype(np.uint8)
+
+        self.vtx = self.vertices[self.faces.ravel()]
+        self.vtx_cls = self.face_colors.reshape((self.face_colors.shape[0], 1, self.face_colors.shape[1]))[:,:,:3]
+        self.vtx_cls = np.repeat(self.vtx_cls,3, axis=1)
+        self.vtx_cls = self.vtx_cls.reshape((-1, 3))
+
 
     def set_camera_generator(self, camera_generator_function):
         self.cam_gen_function = camera_generator_function
 
+    # compute cartesian given spherical coordinates in rad
+    def sphericalToCartesian(self,radius, azimuth, elevation):
+        X = radius * np.cos(elevation) * np.cos(azimuth)
+        Y = radius * np.cos(elevation) * np.sin(azimuth)
+        Z = radius * np.sin(elevation)
+        return X, Y, Z
 
-    def cam_generator_random_position_sphere(self):
-
-        # pick a random vertex in the faces
-        face_id = np.random.randint(0,self.faces.shape[0])
-        vertex_id    = np.random.randint(0,3)
-        v = self.vertices[self.faces[face_id,vertex_id]]
-
-        # create the camera
+    # function to fit with previous
+    def sphericalToCamera(self, center, radius, azimuth, elevation):
+        eyeX, eyeY, eyeZ = self.sphericalToCartesian(radius, azimuth, elevation)
+        eyeX += center[0]
+        eyeY += center[1]
+        eyeZ += center[2]
         cam = {}
-        cam["index"] = face_id
-        cam["x"] = v[0]
-        cam["y"] = v[1]
-        cam["z"] = v[2]
-        cam['azimuth'] = 360*np.random.rand()
-        cam['elevation'] = -90 + 180*np.random.rand()
-        # self.cameras.append(cam)
+        cam["eyeX"] = eyeX
+        cam["eyeY"] = eyeY
+        cam["eyeZ"] = eyeZ
+        cam["centerX"] = center[0]
+        cam["centerY"] = center[1]
+        cam["centerZ"] = center[2]
+        cam["upX"] = 0
+        cam["upY"] = 0
+        cam["upZ"] = 1
         return cam
 
     def cam_generator_random_vertical_cone(self):
+        """Cam generator for isprs 3D dataset."""
+        pt = self.vertices[np.random.randint(0, self.vertices.shape[0])]
+        azimuth = (360*np.random.rand())/180 * np.pi
+        elevation = (90 - 20*np.random.rand())/180 * np.pi #50
+        cams = []
+        for distance in self.opts["distances"]:
+            cams.append(self.sphericalToCamera(pt, distance, azimuth, elevation))
+        return cams
 
-        # pick a random vertex in the faces
-        face_id = np.random.randint(0,self.faces.shape[0])
-        vertex_id    = np.random.randint(0,3)
-        v = self.vertices[self.faces[face_id,vertex_id]]
-
-        # create camera
-        cam = {}
-        cam["index"] = face_id
-        cam["x"] = v[0]
-        cam["y"] = v[1]
-        cam["z"] = v[2]
-        cam['azimuth'] = 360*np.random.rand()
-        cam['elevation'] = 90 - 20*np.random.rand()
-        # self.cameras.append(cam)
-        return cam
-
-    def cam_generator_random_position_upper_half_sphere(self):
-        # pick a random vertex in the faces
-        face_id = np.random.randint(0,self.faces.shape[0])
-        vertex_id    = np.random.randint(0,3)
-        v = self.vertices[self.faces[face_id,vertex_id]]
-
-        # create the camera
-        cam = {}
-        cam["index"] = face_id
-        cam["x"] = v[0]
-        cam["y"] = v[1]
-        cam["z"] = v[2]
-        cam['azimuth'] = 360*np.random.rand()
-        cam['elevation'] = 0 + 90*np.random.rand()
-        # self.cameras.append(cam)
-        return cam
-
-    def cam_generator_random_position_lower_half_sphere(self):
-
-        # pick a random vertex in the faces
-        face_id = np.random.randint(0,self.faces.shape[0])
-        vertex_id    = np.random.randint(0,3)
-        v = self.vertices[self.faces[face_id,vertex_id]]
-
-        # create the camera
-        cam = {}
-        cam["index"] = face_id
-        cam["x"] = v[0]
-        cam["y"] = v[1]
-        cam["z"] = v[2]
-        cam['azimuth'] = 360*np.random.rand()
-        cam['elevation'] = -90 + 90*np.random.rand()
-        # self.cameras.append(cam)
-        return cam
-
-    # generate the cameras
-    # distance float or list (len 2), either fix distance for the camera or random distance
-    def generate_cameras(self, cam_number, distance=5):
-        self.cameras = []
-        for i in range(cam_number):
-            cam = self.cam_gen_function(self)
-            assert isinstance(distance, (list, numbers.Number))
-            if isinstance(distance, list):
-                dist = distance[0] + np.random.rand()* (distance[1]-distance[0])
-            else:
-                dist = distance
-            cam["distance"] = dist
-            self.cameras.append(cam)
-        pickle.dump( self.cameras, open( os.path.join(self.dir_images, self.filename+"_cameras.p"), "wb" ) )
 
     # generate cameras at different distances
     def generate_cameras_scales(self, cam_number, distances=[5,10,20]):
+        self.opts["distances"] = distances
         self.cameras=[]
         for i in range(cam_number):
-            cam = self.cam_gen_function(self)
-            for dist in distances:
-                cam0 = copy.deepcopy(cam)
-                cam0["distance"] = dist
-                self.cameras.append(cam0)
+            cams = self.cam_gen_function(self)
+            self.cameras+=cams
         pickle.dump( self.cameras, open( os.path.join(self.dir_images, self.filename+"_cameras.p"), "wb" ) )
 
-    def convertQImageToMat(self,incomingImage):
-        ''' Converts a QImage into an opencv MAT format '''
-        incomingImage = incomingImage.convertToFormat(4)
-        width = incomingImage.width()
-        height = incomingImage.height()
-        ptr = incomingImage.bits()
-        ptr.setsize(incomingImage.byteCount())
-        arr = np.array(ptr).reshape(height, width, 4)
-        return arr
+    def init(self):
+        self.resize(self.opts["imsize"], self.opts["imsize"])
+        self.t = time.time()
+        self._update_timer = QtCore.QTimer()
+        self._update_timer.timeout.connect(self.update)
+        self._update_timer.start(1e3 / 60.)
+        self.program_close = False
 
-    def update(self):
-        if(self.w.count >= len(self.cameras)):
-            self.w.close()
-            self.app.exit()
-            return
+    def lookAtFromCam(self, cam):
+        gluLookAt( cam["eyeX"], cam["eyeY"], cam["eyeZ"],
+            cam["centerX"], cam["centerY"], cam["centerZ"],
+            cam["upX"], cam["upY"], cam["upZ"])
 
-        self.w.update()
+    def initializeGL(self):
+        glViewport(0, 0, self.opts["imsize"], self.opts["imsize"])
 
-        # get the camera
-        cam = self.cameras[self.w.count]
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(self.opts["fov"], 1, self.opts["near_plane"], self.opts["far_plane"])
+        glMatrixMode(GL_MODELVIEW)
 
-        # set camera parameters
-        self.w.opts["center"] = pg.Vector(cam["x"],cam["y"],cam["z"])
-        self.w.opts["distance"] = cam["distance"]
-        self.w.opts["elevation"] = cam["elevation"]
-        self.w.opts["azimuth"] = cam["azimuth"]
-        self.w.update()
 
-        # get image from window
-        im = self.convertQImageToMat(self.w.readQImage()).astype(np.uint64)
-        im = im[:,:,:3] # get only the first 3 channels
-        im[:,:,2] *= 256*256
-        im[:,:,1] *= 256
-        im = im.sum(axis=2)
-        im -= 1 #we added 1 to handle the background
+    def draw_points(self):
 
-        # save the matrix
-        np.savez(os.path.join(self.dir_images,"views", self.filename+("_%04d" % self.w.count)), im)
-        self.w.count+=1
 
-    def generate_views(self):
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glVertexPointerf(self.vtx)
+        glColorPointer( 3, GL_UNSIGNED_BYTE, 0, self.vtx_cls );
+        glDrawArrays( GL_POINTS , 0,self.vtx.shape[0])
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
 
-        # create the widget
-        self.w= None
-        self.w = gl.GLViewWidget()
-        self.w.resize(self.opts["imsize"],self.opts["imsize"])
-        self.w.opts["fov"] = self.opts["fov"]
-        self.w.setWindowTitle('SnapNet image generator')
-        self.w.show()
+    def draw_mesh(self):
 
-        # initialize the parameters
-        self.w.count = 0
+        glColor3f(1.0,1.0,1.0)
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glVertexPointerf(self.vtx)
+        glColorPointer( 3, GL_UNSIGNED_BYTE, 0, self.vtx_cls );
+        glDrawArrays( GL_TRIANGLES , 0,self.vtx.shape[0])
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
 
-        # create and add the mesh to the GL widget
-        self.w.m1 = gl.GLMeshItem(
-            vertexes=self.vertices,
-            faces=self.faces,
-            faceColors=self.face_colors,
-            smooth=False, drawEdges=False)
-        self.w.m1.setGLOptions('opaque')
-        self.w.addItem(self.w.m1)
 
-        # launch the application
-        self.t = QtCore.QTimer()
-        self.t.timeout.connect(self.update)
-        self.t.start(50)
 
-        # finish
-        self.app.exit(self.app.exec_())
-        self.w.close()
-        self.w.m1 = None
+class ViewGenerator(ViewGeneratorBase):
+    def __init__(self):
+        ViewGeneratorBase.__init__(self)
+
+    # render function
+    def paintGL(self):
+
+        # exit if all camera have been snapped
+        if self.count_camera >= len(self.cameras):
+            time.sleep(1)
+            self.program_close = True
+            self.close()
+        else:
+            glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT)
+            glEnable(GL_DEPTH_TEST)
+            glLoadIdentity()
+
+            self.lookAtFromCam(self.cameras[self.count_camera])
+
+            # self.draw_points()
+            self.draw_mesh()
+
+            buffer = glReadPixels(0, 0, self.opts["imsize"], self.opts["imsize"], GL_RGB, GL_UNSIGNED_BYTE)
+            im = Image.frombytes(mode="RGB", size=(self.opts["imsize"], self.opts["imsize"]), data=buffer)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+
+            # image.save(os.path.join(self.view_directory, self.name+("_%04d" % self.count_camera)+".png"))
+            im.save(os.path.join(self.dir_images,"views", self.filename+("_%04d" % self.count_camera)+".png"))
+
+            im = np.asarray(im).copy()
+            im[:,:,0] *= 256*256
+            im[:,:,1] *= 256
+            im = im.sum(axis=2)
+            im -= 1 #we added 1 to handle the background
+
+            # save the matrix
+            np.savez(os.path.join(self.dir_images,"views", self.filename+("_%04d" % self.count_camera)), im)
+
+            self.count_camera += 1
+
+        self.update()
+        time.sleep(1)
+
+
+class ViewGeneratorNoDisplay(ViewGeneratorBase):
+    def __init__(self):
+        ViewGeneratorBase.__init__(self)
+
+    # render function
+    def paintGL(self):
+
+        for cam_id in self.cameras:
+            glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT)
+            glEnable(GL_DEPTH_TEST)
+            glLoadIdentity()
+
+            self.lookAtFromCam(self.cameras[self.count_camera])
+
+            # self.draw_points()
+            self.draw_mesh()
+
+            buffer = glReadPixels(0, 0, self.opts["imsize"], self.opts["imsize"], GL_RGB, GL_UNSIGNED_BYTE)
+            im = Image.frombytes(mode="RGB", size=(self.opts["imsize"], self.opts["imsize"]), data=buffer)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+
+            # im.save(os.path.join(self.dir_images,"views", self.filename+("_%04d" % self.count_camera)+".png"))
+
+            im = np.asarray(im).copy().astype(int)
+            im[:,:,0] *= 256*256
+            im[:,:,1] *= 256
+            im = im.sum(axis=2)
+            im -= 1 #we added 1 to handle the background
+
+            # save the matrix
+            np.savez(os.path.join(self.dir_images,"views", self.filename+("_%04d" % self.count_camera)), im)
+
+            self.count_camera += 1
+
+        self.program_close = True
+        self.close()

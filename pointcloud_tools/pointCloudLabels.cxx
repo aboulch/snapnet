@@ -26,23 +26,23 @@ PC_Labels::~PC_Labels(){
 }
 
 
-void PC_Labels::load_ply_composite(const std::string& filename){
+void PC_Labels::load_ply_composite(char* filename){
     PointCloudPtr pc_temp(new PointCloud);
     pcl::io::loadPLYFile(filename, *pc_temp);
     noises.resize(pc_temp->size());
     z_orients.resize(pc_temp->size());
-    for(int pt_id=0; pt_id<pc_temp->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc_temp->size(); pt_id++){
         noises[pt_id] = pc_temp->points[pt_id].r;
         z_orients[pt_id] = pc_temp->points[pt_id].g;
     }
 }
 
 
-void PC_Labels::save_ply_composite(const std::string& filename){
+void PC_Labels::save_ply_composite(char* filename){
     // create
     vector<Eigen::Vector3i> composite(pc->size());
     #pragma omp parallel for
-	for(int pt_id=0; pt_id<pc->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
 
         composite[pt_id][0] = int(pc->points[pt_id].r);
         composite[pt_id][1] = int(pc->points[pt_id].g);
@@ -53,7 +53,7 @@ void PC_Labels::save_ply_composite(const std::string& filename){
 	}
     save_ply(filename);
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         pc->points[pt_id].r = composite[pt_id][0];
         pc->points[pt_id].g = composite[pt_id][1];
         pc->points[pt_id].b = composite[pt_id][2];
@@ -71,12 +71,12 @@ void PC_Labels::estimate_noise_radius(float d)
 
     vector<int> point_indices(pc->size());
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         point_indices[pt_id] = pt_id;
     }
 
     // shuffle indices
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         int temp_pos = rand()%pc->size();
         int temp = point_indices[temp_pos];
         point_indices[temp_pos] = point_indices[pt_id];
@@ -84,7 +84,7 @@ void PC_Labels::estimate_noise_radius(float d)
     }
 
     #pragma omp parallel for
-    for(int pt_id_t=0; pt_id_t<pc->size(); pt_id_t++){
+    for(size_t pt_id_t=0; pt_id_t<pc->size(); pt_id_t++){
 
         int pt_id = point_indices[pt_id_t];
 
@@ -196,7 +196,7 @@ void PC_Labels::estimate_noise_knn(int K)
     // }
 
     float mult = 0.5;
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         float a = fabs(pc->points[pt_id].curvature);
         a = (a > mult)? mult : a;
         noises[pt_id] = Byte(a*255*mult);
@@ -209,7 +209,7 @@ void PC_Labels::estimate_z_orient()
 {
     z_orients.resize(pc->size());
     #pragma omp parallel for
-	for(int pt_id=0; pt_id<pc->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
 
 		Eigen::Vector3f normal = pc->points[pt_id].getNormalVector3fMap();
 		normal.normalize();
@@ -250,7 +250,7 @@ void PC_Labels::build_mesh(bool remove_multi_label_faces)
         triangles_decimated.header = triangles.header;
         triangles_decimated.cloud = triangles.cloud;
 
-        for(int i=0; i<triangles.polygons.size(); i++){
+        for(size_t i=0; i<triangles.polygons.size(); i++){
             const int& v0 = labels[triangles.polygons[i].vertices[0]];
             const int& v1 = labels[triangles.polygons[i].vertices[1]];
             const int& v2 = labels[triangles.polygons[i].vertices[2]];
@@ -263,12 +263,12 @@ void PC_Labels::build_mesh(bool remove_multi_label_faces)
 }
 
 
-void PC_Labels::save_mesh_composite(const std::string& filename){
+void PC_Labels::save_mesh_composite(char* filename){
 
     // create composite colors
     vector<Eigen::Vector3i> composite(pc->size());
     #pragma omp parallel for
-	for(int pt_id=0; pt_id<pc->size(); pt_id++){
+	for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         composite[pt_id][0] = int(pc->points[pt_id].r);
         composite[pt_id][1] = int(pc->points[pt_id].g);
         composite[pt_id][2] = int(pc->points[pt_id].b);
@@ -287,7 +287,7 @@ void PC_Labels::save_mesh_composite(const std::string& filename){
 
     // give colors back to point cloud
     #pragma omp parallel for
-    for(int pt_id=0; pt_id<pc->size(); pt_id++){
+    for(size_t pt_id=0; pt_id<pc->size(); pt_id++){
         pc->points[pt_id].r = composite[pt_id][0];
         pc->points[pt_id].g = composite[pt_id][1];
         pc->points[pt_id].b = composite[pt_id][2];
@@ -298,7 +298,7 @@ void PC_Labels::save_mesh_composite(const std::string& filename){
 
 void PC_Labels::get_composite(int* array, int m, int n)
 {
-        int i, j ;
+        int i;
     int index = 0 ;
 
     for (i = 0; i < m; i++) {
@@ -312,7 +312,7 @@ void PC_Labels::get_composite(int* array, int m, int n)
 
 void PC_Labels::get_labels(int* array, int m)
 {
-    int i, j ;
+    int i;
     int index = 0 ;
 
     for (i = 0; i < m; i++)

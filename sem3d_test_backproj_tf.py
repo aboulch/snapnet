@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from plyfile import PlyData, PlyElement
+# from plyfile import PlyData, PlyElement
 import scipy.misc
 import pickle
 from tqdm import *
