@@ -57,7 +57,8 @@ class Trainer:
 
             # load net weights if needed
             if net is not None:
-                net.load(net_weights_init, sess)
+                net.load(net_weights_init, variable_scope = variable_scope, session=sess)
+                #net.load(net_weights_init, sess)
 
             # create the list of images in the folder
             directory = os.path.join(dir_images, images_root)
