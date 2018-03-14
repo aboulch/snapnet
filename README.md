@@ -9,7 +9,7 @@ Please acknowledge the authors and the following research paper:
 
 "Unstructured point cloud semantic labeling using deep segmentation networks", A.Boulch and B. Le Saux and N. Audebert, Eurographics Workshop on 3D Object Retrieval 2017
 
-Abstract and paper [here](https://sites.google.com/view/boulch/publications/2017_3dor_pointclouds).
+Abstract and paper [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
 
 ### Project
 
@@ -41,7 +41,10 @@ The python scripts generates the views using the Pyqtgraph 3D viewer and predict
 #### Python
 - TensorFlow: it is the deep learning framework used in this implementation
 - TQDM, Scipy, Numpy ...
-- Kaffe: if you want to train a new model using the VGG16 weights, they need to be converted to format compatible with TensorFlow.
+
+- (Not necessary on last update) Kaffe: if you want to train a new model using the VGG16 weights, they need to be converted to format compatible with TensorFlow.
+
+
 In our implementation we used the caffe weights avalaible [here](https://gist.github.com/ksimonyan/211839e770f7b538e2d8#file-readme-md).
 
 
@@ -122,7 +125,7 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 ## Pre-trained models
 
-The pre-trained are available [here](https://sites.google.com/view/boulch/publications/2017_3dor_pointclouds).
+The pre-trained are available [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
 
 ## What's next ?
 
