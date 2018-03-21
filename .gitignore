@@ -1,8 +1,6 @@
 *build*
 __pycache__/
-Eigen/
 lib/
-nanoflann.hpp
 *.so
 *.pyc
 *_local*

@@ -35,8 +35,12 @@ The python scripts generates the views using the Pyqtgraph 3D viewer and predict
 - Cython
 - PCL, for installation see [pointclouds.org](pointclouds.org).
 - OpenMP
+
+Dependencies in the pointcloud_tools repository : 
 - NanoFlann: nanoflann.hpp should be included in the include directory
 - Eigen: Eigen should also be included in the include directory
+Please note that for Eigen and Nanoflann new versions, you must check the corresponding website.
+
 
 #### Python
 - TensorFlow: it is the deep learning framework used in this implementation

@@ -207,7 +207,8 @@ public:
 
 		//kd tree creation
 		//build de kd_tree
-		kd_tree tree(3, pts, 10 /* max leaf */ );
+		//kd_tree tree(3, pts, 10 /* max leaf */ );
+		kd_tree tree(pts, 10 /* max leaf */ );
 		tree.index->buildIndex();
 
 		//create the density estimation for each point
@@ -220,8 +221,7 @@ public:
 			int n = permutation[per];
 			//getting the list of neighbors
 			const Eigen::Vector3d& pt_query = pts.row(n);
-			//std::vector<long int> pointIdxSearch(k_density+1);
-			std::vector<long unsigned int> pointIdxSearch(k_density+1);
+			std::vector<long int> pointIdxSearch(k_density+1);
 			std::vector<double> pointSquaredDistance(k_density+1);
 			//knn for k_density+1 because the point is itself include in the search tree
 			tree.index->knnSearch(&pt_query[0], k_density+1, &pointIdxSearch[0], &pointSquaredDistance[0]);
