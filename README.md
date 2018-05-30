@@ -129,7 +129,7 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 ## Pre-trained models
 
-The pre-trained are available [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
+The pre-trained are available [here](https://aboulch.github.io/publications/2017-3DOR-snapnet).
 
 ## What's next ?
 
