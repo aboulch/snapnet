@@ -9,7 +9,7 @@ Please acknowledge the authors and the following research paper:
 
 "Unstructured point cloud semantic labeling using deep segmentation networks", A.Boulch and B. Le Saux and N. Audebert, Eurographics Workshop on 3D Object Retrieval 2017
 
-Abstract and paper [here](https://aboulch.github.io/publications/2017-3DOR-snapnet).
+Abstract and paper [here](http://www.boulch.eu/publications/2017-3DOR-snapnet).
 
 ### Project
 
@@ -129,7 +129,7 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 ## Pre-trained models
 
-The pre-trained are available [here](https://aboulch.github.io/publications/2017-3DOR-snapnet).
+The pre-trained are available [here](http://www.boulch.eu/publications/2017-3DOR-snapnet).
 
 ## What's next ?
 
