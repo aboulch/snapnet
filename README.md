@@ -131,6 +131,10 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 The pre-trained are available [here](http://www.boulch.eu/publications/2017-3DOR-snapnet).
 
+
+For training from scratch, if needed, the pretrained weights of VGG16, from the caffe model are available [here](https://drive.google.com/open?id=1kw-G7gH0II3wt2o30kivTNpgD9c_udm1)
+
+
 ## What's next ?
 
 We want to propose a Pytorch implementation.
