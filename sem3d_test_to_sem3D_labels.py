@@ -4,7 +4,7 @@ import scipy.misc
 from tqdm import *
 import json
 
-from python.Semantic3D import Sem3D
+import semantic3D_utils.lib.python.semantic3D as Sem3D
 
 # load the configuration file and define variables
 print("Loading configuration file")
@@ -45,11 +45,10 @@ if not os.path.exists(output_dir):
 for filename in filenames:
     print(filename)
 
-    semantizer = Sem3D()
-    semantizer.set_voxel_size(voxel_size)
 
     mesh_filename = os.path.join(output_dir, filename+".ply")
     sem3d_cloud_txt = os.path.join(input_dir,filename+".txt")
     output_results = os.path.join(output_dir, filename+".txt")
 
     semantizer.mesh_to_label_file_no_labels(mesh_filename,sem3d_cloud_txt,output_results)
+    Sem3D.project_labels_to_pc()

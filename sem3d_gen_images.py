@@ -19,17 +19,14 @@ config = json.loads(json_data)
 if config["training"]:
     input_dir = config["train_input_dir"]
     directory = config["train_results_root_dir"]
-    cam_number = config["train_cam_number"]
-    create_mesh = config["train_create_mesh"]
-    create_views = config["train_create_views"]
-    create_images = config["train_create_images"]
 else:
     input_dir = config["test_input_dir"]
     directory = config["test_results_root_dir"]
-    cam_number = config["test_cam_number"]
-    create_mesh = config["test_create_mesh"]
-    create_views = config["test_create_views"]
-    create_images = config["test_create_images"]
+
+cam_number = config["cam_number"]
+create_mesh = config["create_mesh"]
+create_views = config["create_views"]
+create_images = config["create_images"]
 
 voxels_directory = os.path.join(directory,"voxels")
 image_directory = os.path.join(directory,config["images_dir"])
@@ -49,106 +46,134 @@ if(config["training"]):
     # training filenames
     filenames = [
         "bildstein_station1_xyz_intensity_rgb",
-        # "bildstein_station3_xyz_intensity_rgb",
-        # "bildstein_station5_xyz_intensity_rgb",
-        # "domfountain_station1_xyz_intensity_rgb",
-        # "domfountain_station2_xyz_intensity_rgb",
-        # "domfountain_station3_xyz_intensity_rgb",
-        # "neugasse_station1_xyz_intensity_rgb",
-        # "sg27_station1_intensity_rgb",
-        # "sg27_station2_intensity_rgb",
-        # "sg27_station4_intensity_rgb",
-        # "sg27_station5_intensity_rgb",
-        # "sg27_station9_intensity_rgb",
-        # "sg28_station4_intensity_rgb",
-        # "untermaederbrunnen_station1_xyz_intensity_rgb",
-        # "untermaederbrunnen_station3_xyz_intensity_rgb"
+        "bildstein_station3_xyz_intensity_rgb",
+        "bildstein_station5_xyz_intensity_rgb",
+        "domfountain_station1_xyz_intensity_rgb",
+        "domfountain_station2_xyz_intensity_rgb",
+        "domfountain_station3_xyz_intensity_rgb",
+        "neugasse_station1_xyz_intensity_rgb",
+        "sg27_station1_intensity_rgb",
+        "sg27_station2_intensity_rgb",
+        "sg27_station4_intensity_rgb",
+        "sg27_station5_intensity_rgb",
+        "sg27_station9_intensity_rgb",
+        "sg28_station4_intensity_rgb",
+        "untermaederbrunnen_station1_xyz_intensity_rgb",
+        "untermaederbrunnen_station3_xyz_intensity_rgb"
         ]
 else: # testing filename
     filenames = [
             "birdfountain_station1_xyz_intensity_rgb",
-            # "castleblatten_station1_intensity_rgb",
-            # "castleblatten_station5_xyz_intensity_rgb",
-            # "marketplacefeldkirch_station1_intensity_rgb",
-            # "marketplacefeldkirch_station4_intensity_rgb",
-            # "marketplacefeldkirch_station7_intensity_rgb",
-            # "sg27_station10_intensity_rgb",
-            # "sg27_station3_intensity_rgb",
-            # "sg27_station6_intensity_rgb",
-            # "sg27_station8_intensity_rgb",
-            # "sg28_station2_intensity_rgb",
-            # "sg28_station5_xyz_intensity_rgb",
-            # "stgallencathedral_station1_intensity_rgb",
-            # "stgallencathedral_station3_intensity_rgb",
-            # "stgallencathedral_station6_intensity_rgb"
+            "castleblatten_station1_intensity_rgb",
+            "castleblatten_station5_xyz_intensity_rgb",
+            "marketplacefeldkirch_station1_intensity_rgb",
+            "marketplacefeldkirch_station4_intensity_rgb",
+            "marketplacefeldkirch_station7_intensity_rgb",
+            "sg27_station10_intensity_rgb",
+            "sg27_station3_intensity_rgb",
+            "sg27_station6_intensity_rgb",
+            "sg27_station8_intensity_rgb",
+            "sg28_station2_intensity_rgb",
+            "sg28_station5_xyz_intensity_rgb",
+            "stgallencathedral_station1_intensity_rgb",
+            "stgallencathedral_station3_intensity_rgb",
+            "stgallencathedral_station6_intensity_rgb"
         ]
 
 
 if create_mesh:
 
-    import pointcloud_tools.lib.python.PcTools as PcTls
+    # import pointcloud_tools.lib.python.PcTools as PcTls
+    import semantic3D_utils.lib.python.semantic3D as Sem3D
     for filename in filenames:
         print(filename)
 
 
         # create the mesher
-        semantizer = PcTls.Semantic3D()
-        semantizer.set_voxel_size(voxel_size)
+        # semantizer = PcTls.Semantic3D()
+        # semantizer.set_voxel_size(voxel_size)
 
         #loading data and voxelization
         print("  -- loading data")
         if config["training"]:
-            semantizer.load_Sem3D_labels(os.path.join(input_dir,filename+".txt"),
-                os.path.join(input_dir,filename+".labels"))
+            # semantizer.load_Sem3D_labels(os.path.join(input_dir,filename+".txt"),
+            #     os.path.join(input_dir,filename+".labels"))
+
+            Sem3D.semantic3d_load_from_txt_voxel_labels(os.path.join(input_dir,filename+".txt"),
+                                                os.path.join(input_dir,filename+".labels"),
+                                                os.path.join(voxels_directory, filename+"_voxels.txt"),
+                                                voxel_size
+                                                )
         else:
-            semantizer.load_Sem3D(os.path.join(input_dir,filename+".txt"))
+            # semantizer.load_Sem3D(os.path.join(input_dir,filename+".txt"))
+            Sem3D.semantic3d_load_from_txt_voxel(os.path.join(input_dir,filename+".txt"),
+                                                os.path.join(voxels_directory, filename+"_voxels.txt"),
+                                                voxel_size
+                                                )
 
-        # estimate normals
-        print("  -- estimating normals")
-        semantizer.estimate_normals_regression(100)
+        print("  -- computing attributes data")
+        # attributes
+        Sem3D.semantic3d_estimate_attributes(os.path.join(voxels_directory, filename+"_voxels.txt"),
+                                            os.path.join(voxels_directory, filename+"_voxels_composite.txt"),
+                                            200
+                                            )
+        # create mesh
+        print("  -- computing mesh data")
+        Sem3D.semantic3d_create_mesh(
+                os.path.join(voxels_directory, filename+"_voxels.txt"),
+                os.path.join(voxels_directory, filename+"_voxels_composite.txt"),
+                os.path.join(voxels_directory, filename+"_voxels_mesh.ply"),
+                os.path.join(voxels_directory, filename+"_voxels_composite_mesh.ply"),
+                os.path.join(voxels_directory, filename+"_voxels_labels_mesh.ply"),
+                os.path.join(voxels_directory, filename+"_voxels_faces.txt"),
+                config["training"]
+                )
+        # # estimate normals
+        # print("  -- estimating normals")
+        # semantizer.estimate_normals_regression(100)
 
-        print("  -- estimating noise")
-        semantizer.estimate_noise_radius(1.)
+        # print("  -- estimating noise")
+        # semantizer.estimate_noise_radius(1.)
 
-        print("  -- estimating Z orient")
-        semantizer.estimate_z_orient()
+        # print("  -- estimating Z orient")
+        # semantizer.estimate_z_orient()
 
-        #save points and labels
-        print("  -- saving plys")
-        semantizer.savePLYFile(os.path.join(voxels_directory,filename+"_points.ply"))
-        semantizer.savePLYFile_composite(os.path.join(voxels_directory,filename+"_composite.ply"))
-        if config["training"]:
-            semantizer.savePLYFile_labels(os.path.join(voxels_directory,filename+"_labels.ply"))
+        # #save points and labels
+        # print("  -- saving plys")
+        # semantizer.savePLYFile(os.path.join(voxels_directory,filename+"_points.ply"))
+        # semantizer.savePLYFile_composite(os.path.join(voxels_directory,filename+"_composite.ply"))
+        # if config["training"]:
+        #     semantizer.savePLYFile_labels(os.path.join(voxels_directory,filename+"_labels.ply"))
 
-        print("  -- building mesh")
-        semantizer.build_mesh(False)
-        semantizer.save_mesh(os.path.join(voxels_directory,filename+"_mesh.ply"))
-        semantizer.save_mesh_composite(os.path.join(voxels_directory,filename+"_mesh_composite.ply"))
-        if config["training"]:
-            semantizer.save_mesh_labels(os.path.join(voxels_directory,filename+"_mesh_labels.ply"))
+        # print("  -- building mesh")
+        # semantizer.build_mesh(False)
+        # semantizer.save_mesh(os.path.join(voxels_directory,filename+"_mesh.ply"))
+        # semantizer.save_mesh_composite(os.path.join(voxels_directory,filename+"_mesh_composite.ply"))
+        # if config["training"]:
+        #     semantizer.save_mesh_labels(os.path.join(voxels_directory,filename+"_mesh_labels.ply"))
 
-        print("  -- extracting vertices")
-        vertices = semantizer.get_vertices_numpy()
-        np.savez(os.path.join(voxels_directory,filename+"_vertices"), vertices)
-        print("  -- extracting normals")
-        normals = semantizer.get_normals_numpy()
-        np.savez(os.path.join(voxels_directory,filename+"_normals"), normals)
-        print("  -- extracting faces")
-        faces = semantizer.get_faces_numpy()
-        np.savez(os.path.join(voxels_directory,filename+"_faces"), faces)
-        print("  -- extracting colors")
-        colors = semantizer.get_colors_numpy()
-        np.savez(os.path.join(voxels_directory,filename+"_colors"), colors)
-        print("  -- extracting composite")
-        composite = semantizer.get_composite_numpy()
-        np.savez(os.path.join(voxels_directory,filename+"_composite"), composite)
-        if config["training"]:
-            print("  -- extracting labels")
-            labels = semantizer.get_labels_numpy()
-            np.savez(os.path.join(voxels_directory,filename+"_labels"), labels)
-            print("  -- extracting labels colors")
-            labelsColors = semantizer.get_labelsColors_numpy()
-            np.savez(os.path.join(voxels_directory,filename+"_labelsColors"), labelsColors)
+        # print("  -- extracting vertices")
+        # vertices = semantizer.get_vertices_numpy()
+        # np.savez(os.path.join(voxels_directory,filename+"_vertices"), vertices)
+        # print("  -- extracting normals")
+        # normals = semantizer.get_normals_numpy()
+        # np.savez(os.path.join(voxels_directory,filename+"_normals"), normals)
+        # print("  -- extracting faces")
+        # faces = semantizer.get_faces_numpy()
+        # np.savez(os.path.join(voxels_directory,filename+"_faces"), faces)
+        # print("  -- extracting colors")
+        # colors = semantizer.get_colors_numpy()
+        # np.savez(os.path.join(voxels_directory,filename+"_colors"), colors)
+        # print("  -- extracting composite")
+        # composite = semantizer.get_composite_numpy()
+        # np.savez(os.path.join(voxels_directory,filename+"_composite"), composite)
+        # if config["training"]:
+        #     print("  -- extracting labels")
+        #     labels = semantizer.get_labels_numpy()
+        #     np.savez(os.path.join(voxels_directory,filename+"_labels"), labels)
+        #     print("  -- extracting labels colors")
+        #     labelsColors = semantizer.get_labelsColors_numpy()
+        #     np.savez(os.path.join(voxels_directory,filename+"_labelsColors"), labelsColors)
 
 
 if create_views:
@@ -162,7 +187,7 @@ if create_views:
         print(filename)
         view_gen = ViewGenerator()
         view_gen.initialize_acquisition(
-                directory,
+                voxels_directory,
                 image_directory,
                 filename
             )

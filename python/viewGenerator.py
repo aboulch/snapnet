@@ -67,15 +67,16 @@ class ViewGeneratorBase(QtOpenGL.QGLWidget):
         self.dir_images = dir_images # directory to contain the images
         self.filename = filename # acquisition name
         self.dir_images_views = os.path.join(self.dir_images,"views")
-        voxels_directory = os.path.join(self.dir_mesh, "voxels")
 
         # create the directory to save the views
         if not os.path.exists(self.dir_images_views):
             os.makedirs(self.dir_images_views)
 
         # load the point cloud
-        self.faces = np.load(os.path.join(voxels_directory, filename+"_faces.npz"))["arr_0"].astype(int)
-        self.vertices = np.load(os.path.join(voxels_directory,self.filename+"_vertices.npz"))["arr_0"]
+        self.faces = np.loadtxt(os.path.join(self.dir_mesh, filename+"_voxels_faces.txt")).astype(int)
+        self.vertices = np.loadtxt(os.path.join(self.dir_mesh,self.filename+"_voxels.txt"), usecols=(0,1,2))
+
+        print(self.faces.shape, self.vertices.shape)
 
         # give a unique color to each face
         self.face_colors = np.zeros((self.faces.shape[0],4), dtype=float)

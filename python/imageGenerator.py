@@ -1,8 +1,21 @@
 import numpy as np
 import pickle
 import os
-import scipy.misc
+from PIL import Image
 from tqdm import *
+
+def label2color(labels):
+	cols = np.array([[0,0,0],
+	[192,192,192],
+	[0,255,0],
+	[38,214,64],
+	[247,247,0],
+	[255,3,0],
+	[122,0,255],
+	[0,255,255],
+	[255,110,206],], dtype=int)
+
+	return cols[labels]
 
 class ImageGenerator:
 
@@ -13,23 +26,38 @@ class ImageGenerator:
         self.is_training = is_training
 
     def initialize_acquisition(self,
-            voxels_directory,
+            dir_mesh,
             dir_images,
             filename,
         ):
         #
-        self.voxels_directory = voxels_directory # root directory of acquisition
+        self.dir_mesh = dir_mesh # root directory of acquisition
         self.dir_images = dir_images # directory to contain the images
         self.filename = filename # acquisition name
 
         # loading data
-        self.vertices = np.load(os.path.join(voxels_directory, self.filename+"_vertices.npz"))["arr_0"]
-        self.faces = np.load(os.path.join(voxels_directory, self.filename+"_faces.npz"))["arr_0"].astype(int)
-        self.colors = np.load(os.path.join(voxels_directory, self.filename+"_colors.npz"))["arr_0"]
-        self.composite = np.load(os.path.join(voxels_directory, self.filename+"_composite.npz"))["arr_0"]
+
+        self.faces = np.loadtxt(os.path.join(self.dir_mesh, filename+"_voxels_faces.txt")).astype(int)
+        self.colors = np.loadtxt(os.path.join(self.dir_mesh,self.filename+"_voxels.txt"))
+        self.composite = np.loadtxt(os.path.join(self.dir_mesh,self.filename+"_voxels_composite.txt"))
+        self.vertices = self.colors[:,:3]
         if self.is_training:
-            self.labels = np.load(os.path.join(voxels_directory, self.filename+"_labels.npz"))["arr_0"]
-            self.labels_colors = np.load(os.path.join(voxels_directory, self.filename+"_labelsColors.npz"))["arr_0"]
+            self.labels = self.colors[:,6].astype(int)
+            self.labels_colors = label2color(self.labels).astype(np.uint8)
+        self.colors = self.colors[:,3:6].astype(np.uint8)
+        self.composite[:,:2] = self.composite[:,6:]
+        self.composite[:,2] = 0
+        self.composite = self.composite[:,:3].astype(np.uint8)
+        # print(self.labels.shape)
+        # print(self.labels_colors.shape)
+
+        # self.vertices = np.load(os.path.join(voxels_directory, self.filename+"_vertices.npz"))["arr_0"]
+        # self.faces = np.load(os.path.join(voxels_directory, self.filename+"_faces.npz"))["arr_0"].astype(int)
+        # self.colors = np.load(os.path.join(voxels_directory, self.filename+"_colors.npz"))["arr_0"]
+        # self.composite = np.load(os.path.join(voxels_directory, self.filename+"_composite.npz"))["arr_0"]
+        # if self.is_training:
+        #     self.labels = np.load(os.path.join(voxels_directory, self.filename+"_labels.npz"))["arr_0"]
+        #     self.labels_colors = np.load(os.path.join(voxels_directory, self.filename+"_labelsColors.npz"))["arr_0"]
 
         # loading cameras
         self.cameras = pickle.load( open( os.path.join(self.dir_images,filename+"_cameras.p"), "rb" ) )
@@ -65,32 +93,35 @@ class ImageGenerator:
 
             if self.is_training:
                 # label matrix
-                im = np.zeros(indices.shape)
+                im = np.zeros(indices.shape, dtype=np.uint8)
                 im[mask] = self.labels[vertex_ids]
                 np.savez(os.path.join(self.dir_images, "labels", self.filename+("_%04d" % i)), im)
 
                 # label colors
-                im = np.zeros(indices.shape+(3,))
+                im = np.zeros(indices.shape+(3,), dtype=np.uint8)
                 im[mask] = self.labels_colors[vertex_ids]
-                scipy.misc.imsave(os.path.join(self.dir_images, "labels_colors", self.filename+("_%04d" % i))+".png", im)
+                # scipy.misc.imsave(os.path.join(self.dir_images, "labels_colors", self.filename+("_%04d" % i))+".png", im)
+                Image.fromarray(im).save(os.path.join(self.dir_images, "labels_colors", self.filename+f"_{i:04d}.png"))
 
             # rgb
-            im = np.zeros(indices.shape+(3,))
+            im = np.zeros(indices.shape+(3,), dtype=np.uint8)
             im[mask] = self.colors[vertex_ids]
-            scipy.misc.imsave(os.path.join(self.dir_images, "rgb", self.filename+("_%04d" % i))+".png", im)
+            Image.fromarray(im).save(os.path.join(self.dir_images, "rgb", self.filename+f"_{i:04d}.png"))
 
             # composite
-            im = np.zeros(indices.shape+(3,))
+            im = np.zeros(indices.shape+(3,), dtype=np.uint8)
             im[mask] = self.composite[vertex_ids]
             cam = self.cameras[i]
-            center = np.array([cam["eyeX"],cam["eyeY"],cam["eyeZ"]])
+            # center = np.array([cam["eyeX"],cam["eyeY"],cam["eyeZ"]])
+            center = np.array([cam["centerX"],cam["centerY"],cam["centerZ"]])
             distances = np.sqrt(((self.vertices[vertex_ids]-center[None,:])**2).sum(axis=1))
-            min_d = 30.
-            max_d = 100.
+            min_d = distances.min()
+            max_d = distances.max()
             distances[distances < min_d] = min_d
             distances[distances > max_d] = max_d
             distances = (1-(distances - min_d)/(max_d-min_d))*255
             distances = distances.reshape(distances.shape+(1,)).repeat(3,axis=1)
             distances[:,:2] = im[mask][:,:2]
             im[mask] = distances
-            scipy.misc.imsave(os.path.join(self.dir_images, "composite", self.filename+("_%04d" % i))+".png", im)
+            im = im.astype(np.uint8)
+            Image.fromarray(im).save(os.path.join(self.dir_images, "composite", self.filename+f"_{i:04d}.png"))

@@ -9,16 +9,12 @@
 
     "imsize":224,
     "voxel_size":0.1,
+    "cam_number":10,
+    "create_mesh" : true,
+    "create_views" : true,
+    "create_images" : true,
 
-    "train_cam_number":10,
-    "train_create_mesh" : true,
-    "train_create_views" : true,
-    "train_create_images" : true,
-
-    "test_cam_number":10,
-    "test_create_mesh" : true,
-    "test_create_views" : true,
-    "test_create_images" : true,
+    "backend": "pytorch",
 
     "vgg_weight_init":"path_to_vgg_weights",
     "batch_size" : 24,
