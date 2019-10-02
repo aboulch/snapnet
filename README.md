@@ -36,28 +36,22 @@ The python scripts generates the views using the Pyqtgraph 3D viewer and predict
 - PCL, for installation see [pointclouds.org](pointclouds.org).
 - OpenMP
 
-Dependencies in the pointcloud_tools repository : 
-- NanoFlann: nanoflann.hpp should be included in the include directory
-- Eigen: Eigen should also be included in the include directory
-Please note that for Eigen and Nanoflann new versions, you must check the corresponding website.
-
+Dependencies in the ```semantic3D_utils``` repository : 
+- NanoFlann: nanoflann.hpp
+- Eigen
 
 #### Python
-- TensorFlow: it is the deep learning framework used in this implementation
+- TensorFlow: it is the deep learning framework used in this implementation **(deprecated)**
+- Pytorch
 - TQDM, Scipy, Numpy ...
-
-- (Not necessary on last update) Kaffe: if you want to train a new model using the VGG16 weights, they need to be converted to format compatible with TensorFlow.
-
-
-In our implementation we used the caffe weights avalaible [here](https://gist.github.com/ksimonyan/211839e770f7b538e2d8#file-readme-md).
-
 
 ### Building
 
 To generate the C++/Python library.
-
-    cd pointcloud_tools
+```
+    cd semantic3D_utils
     python setup.py install --home="."
+```
 
 It will build the library.
 
@@ -74,20 +68,16 @@ The Configuration file is a json file containing the parameters and paths:
         "test_results_root_dir":"where_to_put_test_products",
         "images_dir":"images",
 
-        training:true,
+        "training": true,
 
         "imsize":224,
         "voxel_size":0.1,
+        "cam_number":10,
+        "create_mesh" : true,
+        "create_views" : true,
+        "create_images" : true,
 
-        "train_cam_number":10,
-        "train_create_mesh" : true,
-        "train_create_views" : true,
-        "train_create_images" : true,
-
-        "test_cam_number":10,
-        "test_create_mesh" : true,
-        "test_create_views" : true,
-        "test_create_images" : true,
+        "backend": "pytorch",
 
         "vgg_weight_init":"path_to_vgg_weights",
         "batch_size" : 24,
@@ -117,7 +107,7 @@ For the training and testing dataset, the point cloud decimation, views and imag
 
 To train the models (rgb, composite and fusion) from scratch, run:
 
-    python3 sem3d_train_tf.py --config config.json
+    python3 sem3d_train.py --config config.json
 
 The semantic predictions on images and back-projection on the decimated clouds can be called using:
 
@@ -129,8 +119,9 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 ## Pre-trained models
 
-The pre-trained are available [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
+For the old Tensorflow version, the pre-trained are available [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
 
-## What's next ?
+## Tensorflow version
 
-We want to propose a Pytorch implementation.
+The new code has not been tested with tensorflow. Updates on the tensorflow code are welcome.
+It is also possible to revert to a previous commit to get a working version.
