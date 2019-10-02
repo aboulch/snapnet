@@ -9,7 +9,7 @@ Please acknowledge the authors and the following research paper:
 
 "Unstructured point cloud semantic labeling using deep segmentation networks", A.Boulch and B. Le Saux and N. Audebert, Eurographics Workshop on 3D Object Retrieval 2017
 
-Abstract and paper [here](https://aboulch.github.io/publications/2017-3DOR-snapnet).
+Abstract and paper [here](http://www.boulch.eu/publications/2017-3DOR-snapnet).
 
 ### Project
 
@@ -119,7 +119,17 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
 ## Pre-trained models
 
-For the old Tensorflow version, the pre-trained are available [here](https://aboulch.github.io/publication/2017-3DOR-snapnet).
+For the old Tensorflow version, the pre-trained weights are available:
+
+  [RGB model](https://drive.google.com/open?id=0B6IogDVqG75WY0tyWmtzbU1qSDg)
+
+  [Composite model](https://drive.google.com/open?id=0B6IogDVqG75WdVRkNDhjSE5OR0E)
+
+  [Fusion model](https://drive.google.com/open?id=0B6IogDVqG75WRjg2OEVMUmUyRWc) (to be used with RGB and Composite)
+
+
+For training from scratch, if needed, the pretrained weights of VGG16, from the caffe model are available [here](https://drive.google.com/open?id=1kw-G7gH0II3wt2o30kivTNpgD9c_udm1)
+
 
 ## Tensorflow version
 
