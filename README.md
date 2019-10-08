@@ -117,7 +117,13 @@ Finally to generate the files at the Semantic 3D format and assign a label to ea
 
     python3 sem3d_test_to_sem3D_labels.py --config config.json
 
-## Pre-trained models
+
+## Tensorflow version
+
+The new code has not been tested with tensorflow. Updates on the tensorflow code are welcome.
+It is also possible to revert to a previous commit to get a working version.
+
+### Pre-trained models
 
 For the old Tensorflow version, the pre-trained weights are available:
 
@@ -129,9 +135,3 @@ For the old Tensorflow version, the pre-trained weights are available:
 
 
 For training from scratch, if needed, the pretrained weights of VGG16, from the caffe model are available [here](https://drive.google.com/open?id=1kw-G7gH0II3wt2o30kivTNpgD9c_udm1)
-
-
-## Tensorflow version
-
-The new code has not been tested with tensorflow. Updates on the tensorflow code are welcome.
-It is also possible to revert to a previous commit to get a working version.
