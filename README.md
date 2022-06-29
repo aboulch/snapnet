@@ -127,11 +127,11 @@ It is also possible to revert to a previous commit to get a working version.
 
 For the old Tensorflow version, the pre-trained weights are available:
 
-  [RGB model](https://drive.google.com/open?id=0B6IogDVqG75WY0tyWmtzbU1qSDg)
+  [RGB model](https://github.com/aboulch/snapnet/releases/download/v0.1.1/snapnet_model_rgb.zip)
 
-  [Composite model](https://drive.google.com/open?id=0B6IogDVqG75WdVRkNDhjSE5OR0E)
+  [Composite model](https://github.com/aboulch/snapnet/releases/download/v0.1.1/snapnet_model_composite.zip)
 
-  [Fusion model](https://drive.google.com/open?id=0B6IogDVqG75WRjg2OEVMUmUyRWc) (to be used with RGB and Composite)
+  [Fusion model](https://github.com/aboulch/snapnet/releases/download/v0.1.1/snapnet_model_fusion.zip) (to be used with RGB and Composite)
 
 
 For training from scratch, if needed, the pretrained weights of VGG16, from the caffe model are available [here](https://drive.google.com/open?id=1kw-G7gH0II3wt2o30kivTNpgD9c_udm1)
