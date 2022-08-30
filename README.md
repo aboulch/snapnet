@@ -9,7 +9,7 @@ Please acknowledge the authors and the following research paper:
 
 "Unstructured point cloud semantic labeling using deep segmentation networks", A.Boulch and B. Le Saux and N. Audebert, Eurographics Workshop on 3D Object Retrieval 2017
 
-Abstract and paper [here](http://www.boulch.eu/publications/2017-3DOR-snapnet).
+Abstract and paper [here](https://boulch.eu/publications/2018_cag_snapnet).
 
 ### Project
 
